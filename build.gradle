@@ -1,0 +1,54 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    ext.kotlin_version = '1.2.21'
+    ext.anko_version = '0.10.1'
+    ext.dokka_version = '0.9.15'
+
+    ext.room_version = '1.0.0'
+
+    ext.support_version = '27.0.2'
+    ext.play_services_version = '11.6.2'
+
+    ext.compileSdkVersion = 27
+    ext.buildToolsVersion = '26.0.2'
+    ext.minSdkVersion = 21
+    ext.targetSdkVersion = 27
+
+    // SDK Versioning
+    ext.versionMajor = 0
+    ext.versionMinor = 1
+    ext.versionPatch = 0
+
+    ext.versionCode = versionMajor * 10000 + versionMinor * 100 + versionPatch
+    ext.versionName = "${versionMajor}.${versionMinor}.${versionPatch}"
+    ext.version = versionName + "-SNAPSHOT"
+
+    repositories {
+        google()
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.0.1'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "org.jetbrains.dokka:dokka-android-gradle-plugin:$dokka_version"
+        classpath 'org.jacoco:org.jacoco.core:0.8.0'
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+allprojects {
+    repositories {
+        jcenter()
+        mavenCentral()
+        google()
+        maven { url "https://jitpack.io" }
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

@@ -1,0 +1,86 @@
+apply plugin: 'jacoco'
+
+project.afterEvaluate {
+    // Grab all build types and product flavors
+    def buildTypes = android.buildTypes.collect { type -> type.name }
+    def productFlavors = android.productFlavors.collect { flavor -> flavor.name }
+
+    // When no product flavors defined, use empty
+    if (!productFlavors) productFlavors.add('')
+
+    productFlavors.each { productFlavorName ->
+        buildTypes.each { buildTypeName ->
+            def sourceName, sourcePath
+            if (!productFlavorName) {
+                sourceName = sourcePath = "${buildTypeName}"
+            } else {
+                sourceName = "${productFlavorName}${buildTypeName.capitalize()}"
+                sourcePath = "${productFlavorName}/${buildTypeName}"
+            }
+            def testTaskName = "test${sourceName.capitalize()}UnitTest"
+
+            // Create coverage task of form 'testFlavorTypeCoverage' depending on 'testFlavorTypeUnitTest'
+            //noinspection GroovyAssignabilityCheck
+            task "${testTaskName}Coverage" (type:JacocoReport, dependsOn: "$testTaskName") {
+                group = "Reporting"
+                description = "Generate Jacoco coverage reports on the ${sourceName.capitalize()} build."
+
+                def excludedFiles  = ['**/R.class',
+                                 '**/data/',
+                                 '**/dependency_injection/',
+                                 '**/preferences/',
+                                 '**/exceptions/',
+                                 '**/api/',
+                                 '**/facebook',
+                                 '**/github',
+                                 'android',
+                                 'android/',
+                                 'values',
+                                 'io',
+                                 '**$*',
+                                 '**/*$*',
+                                 'org',
+                                 '/**$*',
+                                 'com/google/',
+                                 'io/',
+                                 'layout/',
+                                 'values',
+                                 '**/R$*.class',
+                                 '**/*$ViewInjector*.*',
+                                 '**/*$ViewBinder*.*',
+                                 '**/BuildConfig.*',
+                                 'R.class',
+                                 'BuildConfig.class',
+                                 '**/Manifest*.*']
+
+                def javaTree = fileTree(
+                        dir: "${project.buildDir}/intermediates/classes/${sourcePath}",
+                        excludes: excludedFiles
+                )
+
+                def kotlinTree = fileTree(
+                        dir: "${project.buildDir}/tmp/kotlin-classes/${sourcePath}",
+                        excludes: excludedFiles
+                )
+
+                classDirectories = files([javaTree], [kotlinTree])
+
+                def coverageSourceDirs = [
+                        "src/main/java",
+                        "src/$productFlavorName/java",
+                        "src/$buildTypeName/java"
+                ]
+                additionalSourceDirs = files(coverageSourceDirs)
+                sourceDirectories = files(coverageSourceDirs)
+                executionData = fileTree(dir: project.projectDir, includes:
+                        ['**/*.exec', '**/*.ec'])
+
+                reports {
+                    xml.enabled = true
+                    csv.enabled = false
+                    html.enabled = true
+                }
+            }
+        }
+    }
+}
